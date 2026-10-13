@@ -3,7 +3,7 @@ import { hashPassword, startTeacherSession } from "@/lib/auth";
 import { HttpError, rateLimit, readJson, route } from "@/lib/http";
 
 export const POST = route(async (req) => {
-  rateLimit(req, "signup", 10);
+  rateLimit(req, "signup", 20);
   const b = await readJson(req);
   const email = typeof b.email === "string" ? b.email.trim().toLowerCase() : "";
   const password = typeof b.password === "string" ? b.password : "";

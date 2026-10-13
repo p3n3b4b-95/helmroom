@@ -1,22 +1,22 @@
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { cookieOpts, newToken, sha256 } from "@/lib/auth";
-import { HttpError, rateLimit, readJson, route } from "@/lib/http";
+import { HttpError, failureGate, readJson, route } from "@/lib/http";
 import { participantCookie } from "@/lib/participant";
 
 export const POST = route(async (req) => {
-  rateLimit(req, "join", 30); // 6-digit codes: slow down guessing
+  const failed = failureGate(req, "joinfail", 20); // 6-digit codes: slow down guessing, not joining
   const b = await readJson(req);
   const code = typeof b.code === "string" ? b.code.replace(/\s/g, "") : "";
   const name = typeof b.name === "string" ? b.name.trim().replace(/\s+/g, " ").slice(0, 40) : "";
-  if (!/^\d{6}$/.test(code)) throw new HttpError(400, "Codes are 6 digits");
+  if (!/^\d{6}$/.test(code)) { failed(); throw new HttpError(400, "Codes are 6 digits"); }
   if (!name) throw new HttpError(400, "Enter your name");
 
   const sql = db();
   const [s] = await sql`select id, title, kind, pacing, status, attempts_allowed,
       (status = 'ended' or (deadline is not null and deadline <= now())) as closed
     from game_sessions where code = ${code} and status <> 'ended'`;
-  if (!s || s.closed) throw new HttpError(404, "No open game with that code");
+  if (!s || s.closed) { failed(); throw new HttpError(404, "No open game with that code"); }
 
   const token = newToken();
   const [existing] = await sql`select id, attempt, finished from participants

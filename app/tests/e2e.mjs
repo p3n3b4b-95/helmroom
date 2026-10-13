@@ -1,4 +1,5 @@
-// End-to-end API checks against a running dev server: BASE=http://localhost:3100 node tests/e2e.mjs
+// End-to-end API checks against a running server: BASE=http://localhost:3100 node tests/e2e.mjs
+// Wait a minute between runs: wrong-code attempts are throttled per IP.
 import assert from "node:assert/strict";
 
 const BASE = process.env.BASE ?? "http://localhost:3100";
@@ -211,6 +212,17 @@ await test("homework: student-paced, attempts limit, deadline rules", async () =
   assert.ok(a.data.sessions.some((x) => x.id === hw.data.id && x.players === 1));
   await teacher(`/api/sessions/${hw.data.id}/end`, {});
   assert.equal((await actor()("/api/join", { code: hw.data.code, name: "New" })).status, 404);
+});
+
+await test("a whole class behind one IP can join; wrong codes get throttled", async () => {
+  const s = await teacher(`/api/quizzes/${quizId}/sessions`, { kind: "live" });
+  assert.equal(s.status, 201);
+  const res = await Promise.all(Array.from({ length: 40 }, (_, i) => actor()("/api/join", { code: s.data.code, name: `Kid ${i}` })));
+  assert.equal(res.filter((r) => r.status === 201).length, 40);
+  let last = 0;
+  for (let i = 0; i < 25; i++) last = (await actor()("/api/join", { code: "999999", name: "x" })).status;
+  assert.equal(last, 429);
+  await teacher(`/api/sessions/${s.data.id}/end`, {});
 });
 
 await test("logout clears the session", async () => {

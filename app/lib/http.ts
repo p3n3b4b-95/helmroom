@@ -38,15 +38,29 @@ export function route(fn: (req: Request, params: Record<string, string>) => Prom
 }
 
 const hits = new Map<string, { n: number; reset: number }>();
+const ipOf = (req: Request) => req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
+
 // ponytail: in-memory per instance, move to a shared store when scaled out
-export function rateLimit(req: Request, key: string, max: number, windowMs = 60_000) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
-  const k = `${key}:${ip}`;
+function bump(key: string, windowMs: number) {
   const now = Date.now();
-  const h = hits.get(k);
+  const h = hits.get(key);
   if (!h || h.reset < now) {
-    hits.set(k, { n: 1, reset: now + windowMs });
-    return;
+    const fresh = { n: 1, reset: now + windowMs };
+    hits.set(key, fresh);
+    return fresh;
   }
-  if (++h.n > max) throw new HttpError(429, "Too many tries, wait a minute");
+  h.n++;
+  return h;
+}
+
+// Count every call.
+export function rateLimit(req: Request, key: string, max: number, windowMs = 60_000) {
+  if (bump(`${key}:${ipOf(req)}`, windowMs).n > max) throw new HttpError(429, "Too many tries, wait a minute");
+}
+
+// Count only failures, so a whole class behind one school IP can join at once.
+export function failureGate(req: Request, key: string, max: number, windowMs = 60_000) {
+  const h = hits.get(`${key}:${ipOf(req)}`);
+  if (h && h.reset >= Date.now() && h.n >= max) throw new HttpError(429, "Too many wrong codes, wait a minute");
+  return () => { bump(`${key}:${ipOf(req)}`, windowMs); };
 }
