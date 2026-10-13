@@ -3,11 +3,13 @@ import { requireTeacher } from "@/lib/auth";
 import { publicQ } from "@/lib/game";
 import { route, uuid } from "@/lib/http";
 import { isClosed, loadSession, secondsLeft, tally } from "@/lib/session";
+import { limitFor, withDefaults } from "@/lib/settings";
 
 export const GET = route(async (_req, p) => {
   const t = await requireTeacher();
   const s = await loadSession(uuid(p.id), t.id);
   const sql = db();
+  const st = withDefaults(s.settings);
   const total = s.snapshot.length;
   const live = s.pacing === "teacher" && s.status === "running" && s.current_index >= 0;
   const cur = live ? s.snapshot[s.current_index] : undefined;
@@ -31,7 +33,8 @@ export const GET = route(async (_req, p) => {
       current_index: s.current_index, total,
     },
     question: cur ? { ...publicQ(cur), correct: cur.correct } : null,
-    secondsLeft: live ? secondsLeft(cur, s.question_started_at, s.now) : null,
+    secondsLeft: live && cur ? secondsLeft(limitFor(cur, st), s.question_started_at, s.now) : null,
+    settings: st,
     ...tally(cur, answers.map((a) => a.answer)),
     players,
   });

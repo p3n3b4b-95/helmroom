@@ -13,6 +13,7 @@ type State = {
   };
   question: { type: string; prompt: string; options: string[]; correct: (number | string)[] } | null;
   secondsLeft: number | null;
+  settings: { timer: string; extra_time: number; allow_change: boolean; shuffle_questions: boolean; shuffle_answers: boolean; show_correct: boolean; show_leaderboard: boolean };
   counts: number[] | null;
   texts: string[];
   players: Player[];
@@ -78,6 +79,19 @@ export default function Host() {
         </Card>
       )}
 
+      {s.status !== "ended" && !s.closed && (
+        <p className="text-sm text-text-muted">
+          Rules: {[
+            data.settings.timer === "off" ? "no timer" : data.settings.extra_time > 1 ? `${data.settings.extra_time}x time` : "normal time",
+            data.settings.allow_change ? "answers can be changed" : "answers are final",
+            data.settings.shuffle_questions && "questions shuffled",
+            data.settings.shuffle_answers && "answers shuffled",
+            !data.settings.show_correct && "right answers hidden",
+            !data.settings.show_leaderboard && "leaderboard hidden from students",
+          ].filter(Boolean).join(" · ")}
+        </p>
+      )}
+
       {s.status === "lobby" && (
         <Card className="space-y-4">
           <h2 className="text-xl font-semibold">{data.players.length} joined</h2>
@@ -93,7 +107,7 @@ export default function Host() {
           <Card className="space-y-4">
             <div className="flex items-center justify-between text-sm text-text-muted">
               <span>Question {s.current_index + 1} of {s.total}</span>
-              <span>{answered} of {data.players.length} answered{left !== null ? ` · ${left}s left` : ""}</span>
+              <span>{answered} of {data.players.length} answered{data.settings.timer === "off" ? " · no timer" : left !== null ? ` · ${left}s left` : ""}</span>
             </div>
             <h2 className="text-xl font-semibold">{data.question.prompt}</h2>
             {data.counts ? (

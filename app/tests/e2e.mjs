@@ -98,7 +98,7 @@ await test("another teacher cannot see, change or run my quiz", async () => {
 let sid, code;
 const alice = actor(), bob = actor(), late = actor();
 await test("live teacher-paced: create session, join, duplicate name refused", async () => {
-  const s = await teacher(`/api/quizzes/${quizId}/sessions`, { kind: "live", pacing: "teacher" });
+  const s = await teacher(`/api/quizzes/${quizId}/sessions`, { kind: "live", pacing: "teacher", settings: { allow_change: false } });
   assert.equal(s.status, 201);
   assert.match(s.data.code, /^\d{6}$/);
   sid = s.data.id; code = s.data.code;
@@ -212,6 +212,159 @@ await test("homework: student-paced, attempts limit, deadline rules", async () =
   assert.ok(a.data.sessions.some((x) => x.id === hw.data.id && x.players === 1));
   await teacher(`/api/sessions/${hw.data.id}/end`, {});
   assert.equal((await actor()("/api/join", { code: hw.data.code, name: "New" })).status, 404);
+});
+
+
+// ---- teacher rules (settings) ----
+const live = async (settings, extra = {}) => {
+  const r = await teacher(`/api/quizzes/${quizId}/sessions`, { kind: "live", pacing: "teacher", settings, ...extra });
+  assert.equal(r.status, 201);
+  return r.data;
+};
+const pick = (q) =>
+  q.prompt === "2+2?" ? q.options.indexOf("4")
+  : q.prompt === "Primes?" ? [q.options.indexOf("2"), q.options.indexOf("3")]
+  : q.prompt === "Capital of France?" ? "Paris"
+  : q.prompt === "Favourite colour?" ? 0 : "fine";
+
+await test("settings are validated", async () => {
+  for (const bad of [{ timer: "maybe" }, { extra_time: 5 }, { allow_change: "yes" }, "x"]) {
+    const r = await teacher(`/api/quizzes/${quizId}/sessions`, { kind: "live", settings: bad });
+    assert.equal(r.status, 400, JSON.stringify(bad));
+  }
+});
+await test("change your answer: saved without a hint, last answer counts, score hidden until it closes", async () => {
+  const g = await live({ timer: "off" });
+  const kid = actor();
+  await kid("/api/join", { code: g.code, name: "Changer" });
+  await teacher(`/api/sessions/${g.id}/start`, {});
+  const q = (await kid(`/api/play/${g.id}`)).data.question;
+  const right = q.options.indexOf("4"), wrong = q.options.indexOf("3");
+  const a1 = await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: wrong });
+  assert.deepEqual(a1.data, { saved: true });
+  const st = (await kid(`/api/play/${g.id}`)).data;
+  assert.equal(st.answered.saved, true);
+  assert.equal(st.answered.answer, wrong);
+  assert.equal("correct" in st.answered, false);
+  const a2 = await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: right });
+  assert.deepEqual(a2.data, { saved: true });
+  const host = (await teacher(`/api/sessions/${g.id}`)).data;
+  assert.equal(host.players[0].score, 1000); // timer off: full points, and the change replaced the wrong answer
+  assert.equal((await kid(`/api/play/${g.id}`)).data.me.score, 0); // hidden while it can still change
+  await teacher(`/api/sessions/${g.id}/end`, {});
+});
+await test("answers are final when change is off", async () => {
+  const g = await live({ timer: "off", allow_change: false });
+  const kid = actor();
+  await kid("/api/join", { code: g.code, name: "Final" });
+  await teacher(`/api/sessions/${g.id}/start`, {});
+  const q = (await kid(`/api/play/${g.id}`)).data.question;
+  const first = await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: q.options.indexOf("3") });
+  assert.equal(first.data.correct, false);
+  const second = await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: q.options.indexOf("4") });
+  assert.equal(second.data.correct, false); // the stored answer comes back
+  assert.equal((await teacher(`/api/sessions/${g.id}`)).data.players[0].score, 0);
+  await teacher(`/api/sessions/${g.id}/end`, {});
+});
+await test("timer off: no countdown, flat points; extra time stretches the clock", async () => {
+  const off = await live({ timer: "off" });
+  const kid = actor();
+  await kid("/api/join", { code: off.code, name: "Slow" });
+  await teacher(`/api/sessions/${off.id}/start`, {});
+  const st = (await kid(`/api/play/${off.id}`)).data;
+  assert.equal(st.secondsLeft, null);
+  assert.equal(st.timerOff, true);
+  assert.equal(st.question.time_limit_s, null);
+  assert.equal((await teacher(`/api/sessions/${off.id}`)).data.secondsLeft, null);
+  await teacher(`/api/sessions/${off.id}/end`, {});
+
+  const x2 = await live({ extra_time: 2 });
+  const kid2 = actor();
+  await kid2("/api/join", { code: x2.code, name: "Roomy" });
+  await teacher(`/api/sessions/${x2.id}/start`, {});
+  const st2 = (await kid2(`/api/play/${x2.id}`)).data;
+  assert.equal(st2.question.time_limit_s, 40);
+  assert.ok(st2.secondsLeft > 30 && st2.secondsLeft <= 40);
+  await teacher(`/api/sessions/${x2.id}/end`, {});
+});
+await test("the verdict appears when the question closes", async () => {
+  // a 5 second question, so the wait is short
+  const z = await teacher("/api/quizzes", { title: "Quick", questions: [{ type: "mcq", prompt: "1+1?", options: ["2", "3"], correct: [0], time_limit_s: 5 }] });
+  const g = (await teacher(`/api/quizzes/${z.data.id}/sessions`, { kind: "live" })).data;
+  const kid = actor();
+  await kid("/api/join", { code: g.code, name: "Waiter" });
+  await teacher(`/api/sessions/${g.id}/start`, {});
+  await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: 0 });
+  assert.equal((await kid(`/api/play/${g.id}`)).data.answered.saved, true);
+  await new Promise((r) => setTimeout(r, 6200));
+  const after = (await kid(`/api/play/${g.id}`)).data;
+  assert.equal(after.answered.saved, false);
+  assert.equal(after.answered.correct, true);
+  assert.equal(after.me.score, after.answered.points);
+  assert.equal((await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: 1 })).data.correct, true); // too late to change
+  await teacher(`/api/sessions/${g.id}/end`, {});
+});
+await test("hide right answer and hide leaderboard from students", async () => {
+  const g = await live({ timer: "off", allow_change: false, show_correct: false, show_leaderboard: false });
+  const kid = actor();
+  await kid("/api/join", { code: g.code, name: "Blind" });
+  await teacher(`/api/sessions/${g.id}/start`, {});
+  const q = (await kid(`/api/play/${g.id}`)).data.question;
+  const r = await kid(`/api/play/${g.id}/answer`, { q_index: 0, answer: q.options.indexOf("3") });
+  assert.equal(r.data.correct, false);
+  assert.equal(r.data.correctAnswer, null);
+  const st = (await kid(`/api/play/${g.id}`)).data;
+  assert.equal(st.answered.correctAnswer, null);
+  assert.deepEqual(st.leaderboard, []);
+  assert.equal(st.me.rank, null);
+  const host = (await teacher(`/api/sessions/${g.id}`)).data; // the teacher still sees everything
+  assert.equal(host.players.length, 1);
+  await teacher(`/api/sessions/${g.id}/end`, {});
+});
+await test("shuffled answers and questions still grade and report correctly", async () => {
+  const hw = (await teacher(`/api/quizzes/${quizId}/sessions`, {
+    kind: "homework", deadline: new Date(Date.now() + 3600_000).toISOString(),
+    settings: { shuffle_answers: true, shuffle_questions: true },
+  })).data;
+  const orders = new Set(), optionOrders = new Set();
+  for (let k = 0; k < 6; k++) {
+    const kid = actor();
+    assert.equal((await kid("/api/join", { code: hw.code, name: `Shuf ${k}` })).status, 201);
+    const seen = [];
+    for (let i = 0; i < 5; i++) {
+      const st = (await kid(`/api/play/${hw.id}`)).data;
+      assert.equal(st.index, i);
+      seen.push(st.question.prompt);
+      if (st.question.prompt === "2+2?") optionOrders.add(st.question.options.join(","));
+      const r = await kid(`/api/play/${hw.id}/answer`, { q_index: i, answer: pick(st.question) });
+      assert.equal(r.status, 200);
+      if (["2+2?", "Primes?", "Capital of France?"].includes(st.question.prompt)) assert.equal(r.data.correct, true, st.question.prompt);
+    }
+    assert.deepEqual([...seen].sort(), ["2+2?", "Capital of France?", "Favourite colour?", "Primes?", "Say something"]);
+    orders.add(seen.join("|"));
+  }
+  assert.ok(orders.size > 1, "questions came in more than one order");
+  assert.ok(optionOrders.size > 1, "answers came in more than one order");
+  const rep = (await teacher(`/api/sessions/${hw.id}/report`)).data;
+  assert.equal(rep.students.length, 6);
+  assert.ok(rep.students.every((x) => x.answered === 5));
+  assert.equal(rep.questions[0].prompt, "2+2?"); // the report keeps the quiz's own order
+  assert.equal(rep.questions[0].correct_pct, 100);
+  assert.deepEqual(rep.questions[0].counts, [0, 6, 0]); // counted against the real options
+  await teacher(`/api/sessions/${hw.id}/end`, {});
+});
+await test("rename and duplicate a quiz", async () => {
+  assert.equal((await teacher(`/api/quizzes/${quizId}`, { title: "  " }, "PATCH")).status, 400);
+  const r = await teacher(`/api/quizzes/${quizId}`, { title: "Renamed quiz" }, "PATCH");
+  assert.equal(r.data.title, "Renamed quiz");
+  const d = await teacher(`/api/quizzes/${quizId}/duplicate`, {});
+  assert.equal(d.status, 201);
+  assert.equal(d.data.title, "Copy of Renamed quiz");
+  const copy = (await teacher(`/api/quizzes/${d.data.id}`)).data;
+  assert.equal(copy.questions.length, 5);
+  assert.equal(copy.questions[2].correct[0], "Paris");
+  assert.equal((await other(`/api/quizzes/${quizId}`, { title: "mine now" }, "PATCH")).status, 404);
+  assert.equal((await other(`/api/quizzes/${quizId}/duplicate`, {})).status, 404);
 });
 
 await test("a whole class behind one IP can join; wrong codes get throttled", async () => {

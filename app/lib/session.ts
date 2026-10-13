@@ -16,6 +16,7 @@ export type SessionRow = {
   status: "lobby" | "running" | "ended";
   current_index: number;
   question_started_at: Date | null;
+  settings: unknown;
   created_at: Date;
   now: Date; // database clock, so every elapsed-time check uses one clock
 };
@@ -29,8 +30,8 @@ export async function loadSession(id: string, hostId?: string): Promise<SessionR
 export const isClosed = (s: SessionRow) =>
   s.status === "ended" || (s.deadline !== null && s.now.getTime() >= s.deadline.getTime());
 
-export const secondsLeft = (q: Q | undefined, startedAt: Date | null, now: Date) =>
-  q && startedAt ? Math.max(0, Math.ceil(q.time_limit_s - (now.getTime() - startedAt.getTime()) / 1000)) : null;
+export const secondsLeft = (limitS: number | null, startedAt: Date | null, now: Date) =>
+  limitS !== null && startedAt ? Math.max(0, Math.ceil(limitS - (now.getTime() - startedAt.getTime()) / 1000)) : null;
 
 // counts per option for choice questions, plus raw text answers for open questions
 export function tally(q: Q | undefined, answers: unknown[]) {

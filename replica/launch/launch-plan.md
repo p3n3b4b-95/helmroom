@@ -2,9 +2,8 @@
 
 ## Gate: don't announce until these are true
 
-1. The four cheap fixes are built (answer change, timer off or extra time, one settings panel, rename and
-   duplicate). Right now the angle "teacher control" is only partly true. The landing page claims only what exists,
-   so it is honest, but the pitch is weaker than it should be. See `fixes.md`.
+1. ~~The four cheap fixes~~ Built 2026-10-13: answer change, timer off or extra time, one settings panel, rename,
+   duplicate and drag to reorder. Still missing from that list: extra time per student (it is per game).
 2. A privacy policy and terms, written for schools. Students are often under 13 or under 16. The app stores a
    display name, answers and score only, which helps, but COPPA, FERPA and GDPR questions are yours to settle with
    a lawyer before schools use it. No policy page exists yet.

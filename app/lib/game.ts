@@ -96,12 +96,14 @@ export function grade(q: Q, answer: unknown): { stored: number | number[] | stri
   }
 }
 
-// Full points for an instant answer, down to half for the last second.
-export function score(q: Q, correct: boolean | null, elapsedMs: number): number {
+// Full points for an instant answer, down to half for the last second. No timer: flat points.
+export function score(q: Q, correct: boolean | null, elapsedMs: number, limitS: number | null): number {
   if (!correct) return 0;
-  const frac = Math.max(0, 1 - elapsedMs / (q.time_limit_s * 1000));
+  if (limitS === null) return q.points;
+  const frac = Math.max(0, 1 - elapsedMs / (limitS * 1000));
   return Math.round(q.points * (0.5 + 0.5 * frac));
 }
 
 export const GRACE_MS = 2000;
-export const timedOut = (q: Q, elapsedMs: number) => elapsedMs > q.time_limit_s * 1000 + GRACE_MS;
+export const timedOut = (limitS: number | null, elapsedMs: number) =>
+  limitS !== null && elapsedMs > limitS * 1000 + GRACE_MS;

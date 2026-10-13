@@ -6,10 +6,13 @@ import { api } from "@/lib/client";
 import { Button, Card, ErrorText, Field, Input } from "@/components/ui";
 
 const CONTROLS = [
-  ["Time per question", "Give each question anywhere from 5 seconds to 5 minutes. Long reading passage? Give it the time it needs."],
+  ["Time per question", "Give each question anywhere from 5 seconds to 5 minutes. Then stretch it for the whole game, or turn the timer off."],
+  ["Change your answer", "Students can fix a misclick until the question ends. Turn it off for a test."],
+  ["Shuffle, or don't", "Shuffle the questions, the answers, both, or neither."],
+  ["Show only what you want", "Choose whether students see the right answer, and whether they see the leaderboard."],
   ["Your pace or theirs", "Move the whole class on yourself, or let every student go at their own speed."],
   ["Homework with a due date", "Set a deadline and how many attempts students get, up to 10. The code stays open until it closes."],
-  ["Edit any time", "Change a quiz after you've used it. A game already running keeps the version it started with."],
+  ["Edit any time", "Rename, duplicate or reorder a quiz after you've used it. A game already running keeps the version it started with."],
 ];
 
 const BASICS = [
@@ -81,7 +84,8 @@ export default function Home() {
         <h2 className="text-[28px] font-bold leading-[34px]">You shouldn't have to hunt for the setting</h2>
         <p className="text-text-muted">
           Renaming a quiz, moving a question, giving a long question more time. These are small jobs, and they
-          shouldn't turn into a search through menus. In Helmroom the rules for a quiz sit in one place, in plain words.
+          shouldn't turn into a search through menus. In Helmroom the rules for a game sit in one panel, in plain words,
+          before you start.
         </p>
       </section>
 

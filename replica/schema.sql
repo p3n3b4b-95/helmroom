@@ -55,6 +55,7 @@ create table game_sessions (
   deadline timestamptz,                   -- homework only
   attempts_allowed int not null default 1 check (attempts_allowed between 1 and 10),
   status text not null default 'lobby' check (status in ('lobby','running','ended')),
+  settings jsonb not null default '{}',    -- teacher rules, see app/lib/settings.ts
   current_index int not null default -1,  -- teacher-paced: question on screen
   question_started_at timestamptz,
   created_at timestamptz not null default now(),

@@ -40,3 +40,15 @@ export const DELETE = route(async (_req, p) => {
   if (r.length === 0) throw new HttpError(404, "Quiz not found");
   return Response.json({ ok: true });
 });
+
+// rename without touching the questions
+export const PATCH = route(async (req, p) => {
+  const t = await requireTeacher();
+  const b = await readJson(req);
+  const title = typeof b.title === "string" ? b.title.trim().slice(0, 200) : "";
+  if (!title) throw new HttpError(400, "Give the quiz a title");
+  const r = await db()`update quizzes set title = ${title}, updated_at = now()
+    where id = ${uuid(p.id)} and owner_id = ${t.id} returning id, title`;
+  if (r.length === 0) throw new HttpError(404, "Quiz not found");
+  return Response.json(r[0]);
+});

@@ -24,3 +24,13 @@ Visual states were checked by hand on desktop width only. Mobile (390px) is not 
 - S01 landing: rebuilt as the full landing page (hero, problem, how it works, controls, beta note, FAQ, CTA). Claims limited to what exists. No product screenshot yet.
 - Nav wrapped at 375px: right-hand links were cut off. Fixed, nothing offscreen now.
 - Mobile checked for the home page only. Editor, host and play screens at 390px still unchecked.
+
+## 2026-10-13, the four fixes from fixes.md
+- Settings per game (jsonb on game_sessions, migration 20261014000000): timer on/off, extra time 1.5x/2x/3x,
+  change answer, shuffle questions, shuffle answers, show right answer, show leaderboard. One panel in the start dialog.
+- Change answer: teacher-paced games take re-taps until the question closes and show only "saved" until then
+  (no right/wrong hint, score held back). Student-paced games get a "Lock in answer" step instead.
+- Shuffle is deterministic per student, so the server maps answers back and reports stay in the quiz's own order.
+- Rename (PATCH), duplicate, drag to reorder in the editor. Up and Down buttons stay for keyboard use.
+- Not built: extra time per student. Per game only.
+- Only desktop width checked for the new panel. Drag and drop was not exercised in a browser, only the handle rendered.

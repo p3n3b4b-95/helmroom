@@ -1,7 +1,9 @@
-import { randomInt } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import { db } from "@/lib/db";
 import { requireTeacher } from "@/lib/auth";
 import { HttpError, readJson, route, uuid } from "@/lib/http";
+import { parseSettings } from "@/lib/settings";
+import { perm } from "@/lib/shuffle";
 
 export const POST = route(async (req, p) => {
   const t = await requireTeacher();
@@ -10,6 +12,7 @@ export const POST = route(async (req, p) => {
   const kind = b.kind === "homework" ? "homework" : b.kind === "live" ? "live" : null;
   if (!kind) throw new HttpError(400, "kind must be live or homework");
   if (b.mode !== undefined && b.mode !== "classic") throw new HttpError(400, "Only classic mode is available");
+  const settings = parseSettings(b.settings);
   const pacing = kind === "homework" || b.pacing === "student" ? "student" : "teacher";
 
   let deadline: Date | null = null;
@@ -28,14 +31,18 @@ export const POST = route(async (req, p) => {
   const qs = await sql`select type, prompt, image_url, options, correct, points, time_limit_s
     from questions where quiz_id = ${quizId} order by position`;
   if (qs.length === 0) throw new HttpError(400, "Quiz has no questions");
+  // teacher-paced order is shared by the class, so shuffle once here; student-paced shuffles per student
+  const snapshot = pacing === "teacher" && settings.shuffle_questions
+    ? perm(qs.length, randomBytes(8).toString("hex")).map((i) => qs[i])
+    : qs;
 
   for (let i = 0; i < 10; i++) {
     const code = String(randomInt(100000, 1000000));
     try {
       const [s] = await sql`insert into game_sessions
-        (quiz_id, host_id, code, title, snapshot, kind, pacing, deadline, attempts_allowed, status)
-        values (${quizId}, ${t.id}, ${code}, ${z.title}, ${sql.json(qs as never)}, ${kind}, ${pacing},
-                ${deadline}, ${attempts}, ${kind === "homework" ? "running" : "lobby"})
+        (quiz_id, host_id, code, title, snapshot, kind, pacing, deadline, attempts_allowed, status, settings)
+        values (${quizId}, ${t.id}, ${code}, ${z.title}, ${sql.json(snapshot as never)}, ${kind}, ${pacing},
+                ${deadline}, ${attempts}, ${kind === "homework" ? "running" : "lobby"}, ${sql.json(settings as never)})
         returning id, code`;
       return Response.json({ id: s.id, code: s.code }, { status: 201 });
     } catch (e) {

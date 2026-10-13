@@ -30,6 +30,8 @@ export default function Editor() {
   const [loading, setLoading] = useState(id !== "new");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
 
   useEffect(() => {
     if (id === "new") return;
@@ -87,8 +89,20 @@ export default function Editor() {
       </Card>
 
       {qs.map((q, i) => (
-        <Card key={i} className="space-y-4">
+        <div key={i}
+          onDragOver={(e) => { if (dragFrom !== null) { e.preventDefault(); setDragOver(i); } }}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (dragFrom !== null && dragFrom !== i) {
+              setQs((a) => { const b = [...a]; const [m] = b.splice(dragFrom, 1); b.splice(i, 0, m); return b; });
+            }
+            setDragFrom(null); setDragOver(null);
+          }}
+          className={dragOver === i && dragFrom !== null && dragFrom !== i ? "rounded-lg outline-2 outline-dashed outline-accent" : ""}>
+        <Card className="space-y-4">
           <div className="flex items-center gap-2">
+            <span draggable onDragStart={() => setDragFrom(i)} onDragEnd={() => { setDragFrom(null); setDragOver(null); }}
+              title="Drag to move" aria-hidden="true" className="cursor-grab select-none px-1 text-text-muted">⠿</span>
             <h2 className="mr-auto font-semibold">Question {i + 1} · {LABEL[q.type]}</h2>
             <Button variant="ghost" disabled={i === 0} onClick={() => setQs((a) => { const b = [...a]; [b[i - 1], b[i]] = [b[i], b[i - 1]]; return b; })} aria-label="Move up">Up</Button>
             <Button variant="ghost" disabled={i === qs.length - 1} onClick={() => setQs((a) => { const b = [...a]; [b[i + 1], b[i]] = [b[i], b[i + 1]]; return b; })} aria-label="Move down">Down</Button>
@@ -139,6 +153,7 @@ export default function Editor() {
             </Field>
           </div>
         </Card>
+        </div>
       ))}
 
       <div className="flex flex-wrap gap-2">
