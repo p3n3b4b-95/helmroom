@@ -367,6 +367,22 @@ await test("rename and duplicate a quiz", async () => {
   assert.equal((await other(`/api/quizzes/${quizId}/duplicate`, {})).status, 404);
 });
 
+await test("account deletion removes the account and everything under it", async () => {
+  const t = actor();
+  const email = `del-${uniq}@example.com`;
+  await t("/api/auth/signup", { email, password: "correct horse" });
+  const z = await t("/api/quizzes", { title: "Doomed", questions: [{ type: "mcq", prompt: "a", options: ["1", "2"], correct: [0] }] });
+  const g = await t(`/api/quizzes/${z.data.id}/sessions`, { kind: "live" });
+  const kid = actor();
+  assert.equal((await kid("/api/join", { code: g.data.code, name: "Gone" })).status, 201);
+  assert.equal((await t("/api/me", { confirm: "wrong@example.com" }, "DELETE")).status, 400);
+  assert.equal((await t("/api/me", { confirm: email.toUpperCase() }, "DELETE")).status, 200);
+  assert.equal((await t("/api/me")).data.user, null);
+  assert.equal((await actor()("/api/auth/login", { email, password: "correct horse" })).status, 401);
+  assert.equal((await kid(`/api/play/${g.data.id}`)).status, 401); // the game and its players are gone
+  assert.equal((await actor()("/api/join", { code: g.data.code, name: "Late" })).status, 404);
+});
+
 await test("a whole class behind one IP can join; wrong codes get throttled", async () => {
   const s = await teacher(`/api/quizzes/${quizId}/sessions`, { kind: "live" });
   assert.equal(s.status, 201);

@@ -20,6 +20,7 @@ export default function Nav() {
           <>
             <Link href="/dashboard" className={link}>My quizzes</Link>
             <Link href="/assignments" className={link}>Sessions</Link>
+            <Link href="/account" className={link}>Account</Link>
             <button className={link} onClick={async () => { await api("/api/auth/logout", { body: {} }); setUser(null); router.push("/"); }}>
               Log out
             </button>
