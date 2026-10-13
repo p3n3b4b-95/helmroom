@@ -9,14 +9,14 @@ Scope: S01-S13 from recon, minus AI generate, team/mastery modes and accommodati
 | --- | --- | --- |
 | web | Next.js 16 App Router + TypeScript | one codebase for UI and API routes |
 | styling | Tailwind, tokens from replica-design | tokens map straight to CSS variables |
-| database | Postgres (Docker locally, Neon in prod) | relational fit, partial unique index for join codes |
+| database | Postgres: Supabase free project in prod (linked to your GitHub), Docker locally | relational fit, partial unique index for join codes; Supabase free tier pauses after about a week idle |
 | data access | `postgres` (porsager) with plain SQL | six tables, an ORM is more code than the SQL |
 | auth | email + password, scrypt, random session token (hash stored) in httpOnly cookie | no third party, about 60 lines; teachers only, students are anonymous |
 | realtime | short polling every 1.5s | works on Vercel, no websocket server, classroom sizes (30-100) |
 | payments | none yet | plans page is `/replica-backend` and `/replica-launch` territory |
 | email | none yet | needed only for password reset (should) |
 | jobs | none | homework expiry is computed on read (deadline < now()) |
-| hosting | Vercel + Neon | boring and cheap at zero users |
+| hosting | Vercel + Supabase | boring and cheap at zero users |
 
 One database, one app, no services. ponytail: polling caps out around a few hundred players per session; swap in Supabase Realtime or SSE if that bites.
 
@@ -75,3 +75,10 @@ Private endpoints of the original are not used; all routes above are our own.
 2. Must-haves: remaining question types (poll, fill, open), student-paced and homework with deadline and attempts, S11 report, S12 assignments, leaderboard polish.
 3. Should-haves: team, test and mastery modes, image on question, quiz library search, share by link, AI generate (needs an LLM key from you).
 4. Fixes from replica-entrepreneur.
+
+## Supabase notes
+
+- Used as plain Postgres only. Auth stays our own (teachers only, anonymous students) so there is no Supabase Auth or RLS to configure. Data-layer checks do the access control, so the anon key must never ship to the browser. Use the server-side connection string only.
+- Connection string goes in `DATABASE_URL` (Vercel env vars and `app/.env.local`), never in git. Use the pooler URL (transaction mode, port 6543) on Vercel, and `postgres(url, { prepare: false })`.
+- Apply `replica/schema.sql` once in the Supabase SQL editor.
+- Free tier: project pauses after inactivity, so a paused project means a dead app until someone unpauses it. Fine for building, not for a launch.

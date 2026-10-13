@@ -1,0 +1,36 @@
+"use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/client";
+
+export default function Nav() {
+  const [user, setUser] = useState<{ name: string; email: string } | null | undefined>(undefined);
+  const router = useRouter();
+  useEffect(() => {
+    api<{ user: { name: string; email: string } | null }>("/api/me").then((r) => setUser(r.user)).catch(() => setUser(null));
+  }, []);
+  const link = "rounded-md px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface";
+  return (
+    <header className="border-b border-border">
+      <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-2 px-4">
+        <Link href="/" className="mr-auto text-lg font-bold">Quizroom</Link>
+        <Link href="/" className={link}>Join a game</Link>
+        {user ? (
+          <>
+            <Link href="/dashboard" className={link}>My quizzes</Link>
+            <Link href="/assignments" className={link}>Sessions</Link>
+            <button className={link} onClick={async () => { await api("/api/auth/logout", { body: {} }); setUser(null); router.push("/"); }}>
+              Log out
+            </button>
+          </>
+        ) : user === null ? (
+          <>
+            <Link href="/login" className={link}>Log in</Link>
+            <Link href="/signup" className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-on-accent">Sign up</Link>
+          </>
+        ) : null}
+      </div>
+    </header>
+  );
+}

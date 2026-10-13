@@ -74,6 +74,8 @@ create table participants (
   attempt int not null default 1,
   score int not null default 0,
   finished boolean not null default false,
+  current_index int not null default 0,   -- student-paced: next question for this participant
+  question_started_at timestamptz,        -- student-paced: when that question was first shown
   joined_at timestamptz not null default now()
 );
 create unique index participants_name_key on participants (session_id, lower(display_name));
