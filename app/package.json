@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:api": "node tests/e2e.mjs",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "next": "16.4.0",
@@ -16,6 +18,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.9",
     "@electric-sql/pglite-socket": "^0.2.12",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

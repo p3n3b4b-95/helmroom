@@ -14,9 +14,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Nav />
         <main className="mx-auto w-full max-w-[1120px] flex-1 px-4 py-8">{children}</main>
         <footer className="border-t border-border">
-          <nav className="mx-auto flex max-w-[1120px] gap-4 px-4 py-4 text-sm text-text-muted" aria-label="Footer">
-            <a href="/privacy" className="hover:underline">Privacy</a>
-            <a href="/terms" className="hover:underline">Terms</a>
+          <nav className="mx-auto flex max-w-[1120px] gap-6 px-4 py-2 text-sm text-text-muted" aria-label="Footer">
+            <a href="/privacy" className="inline-block py-2 hover:underline">Privacy</a>
+            <a href="/terms" className="inline-block py-2 hover:underline">Terms</a>
           </nav>
         </footer>
       </body>

@@ -100,13 +100,13 @@ export default function Editor() {
           }}
           className={dragOver === i && dragFrom !== null && dragFrom !== i ? "rounded-lg outline-2 outline-dashed outline-accent" : ""}>
         <Card className="space-y-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1">
             <span draggable onDragStart={() => setDragFrom(i)} onDragEnd={() => { setDragFrom(null); setDragOver(null); }}
               title="Drag to move" aria-hidden="true" className="cursor-grab select-none px-1 text-text-muted">⠿</span>
-            <h2 className="mr-auto font-semibold">Question {i + 1} · {LABEL[q.type]}</h2>
-            <Button variant="ghost" disabled={i === 0} onClick={() => setQs((a) => { const b = [...a]; [b[i - 1], b[i]] = [b[i], b[i - 1]]; return b; })} aria-label="Move up">Up</Button>
-            <Button variant="ghost" disabled={i === qs.length - 1} onClick={() => setQs((a) => { const b = [...a]; [b[i + 1], b[i]] = [b[i], b[i + 1]]; return b; })} aria-label="Move down">Down</Button>
-            <Button variant="ghost" disabled={qs.length === 1} onClick={() => setQs((a) => a.filter((_, j) => j !== i))}>Remove</Button>
+            <h2 className="mr-auto min-w-0 flex-1 basis-40 font-semibold">Question {i + 1} · {LABEL[q.type]}</h2>
+            <Button variant="ghost" className="px-2" disabled={i === 0} onClick={() => setQs((a) => { const b = [...a]; [b[i - 1], b[i]] = [b[i], b[i - 1]]; return b; })} aria-label="Move up">Up</Button>
+            <Button variant="ghost" className="px-2" disabled={i === qs.length - 1} onClick={() => setQs((a) => { const b = [...a]; [b[i + 1], b[i]] = [b[i], b[i + 1]]; return b; })} aria-label="Move down">Down</Button>
+            <Button variant="ghost" className="px-2" disabled={qs.length === 1} onClick={() => setQs((a) => a.filter((_, j) => j !== i))}>Remove</Button>
           </div>
           <Field label="Question">
             <Input value={q.prompt} maxLength={1000} onChange={(e) => set(i, { prompt: e.target.value })} />

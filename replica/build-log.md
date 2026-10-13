@@ -34,3 +34,11 @@ Visual states were checked by hand on desktop width only. Mobile (390px) is not 
 - Rename (PATCH), duplicate, drag to reorder in the editor. Up and Down buttons stay for keyboard use.
 - Not built: extra time per student. Per game only.
 - Only desktop width checked for the new panel. Drag and drop was not exercised in a browser, only the handle rendered.
+
+## 2026-10-13, 390px pass and browser tests
+- Checked at 390px: home, dashboard with rules panel, editor, host lobby and running, play, report, sessions, account, privacy.
+- Fixed: dashboard card pushed the page to 834px with a long quiz title (grid item had no min-width). Editor question
+  header overflowed by 4px (Up, Down, Remove did not wrap). Footer and brand link tap targets were 20 to 28px tall.
+- Playwright: tests/browser, phone and desktop projects. PW_CDP lets it drive an existing Chrome when the bundled
+  Chromium can't be downloaded (it couldn't here, so the runs above used headless Chrome over CDP).
+- Not covered: drag and drop reorder, Safari, real devices.

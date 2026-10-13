@@ -173,12 +173,12 @@ export default function Dashboard() {
           {!q && <p className="mt-1 text-text-muted">Write your first quiz. It takes a few minutes.</p>}
         </Card>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {quizzes.map((z) => (
-            <li key={z.id}>
+            <li key={z.id} className="min-w-0">
               <Card>
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start gap-3">
+                  <div className="min-w-0 flex-1 basis-40">
                     <h2 className="truncate text-lg font-semibold">{z.title}</h2>
                     <p className="text-sm text-text-muted">
                       {z.question_count} question{z.question_count === 1 ? "" : "s"}{z.subject ? ` · ${z.subject}` : ""}

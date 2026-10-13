@@ -10,8 +10,8 @@ you do are below.
 | check | result |
 | --- | --- |
 | e2e suite green | **pass**, 29 of 29 (API level, against a local build) |
-| browser tests (Playwright) | **fail**, none written. Live game flow was clicked through by hand once |
-| no open S1 or S2 bugs | **unknown**. Editor, host and play screens were never checked at 390px |
+| browser tests (Playwright) | **pass**, 5 specs x 2 projects (390px phone and 1280px desktop), 10 of 10. Live game, homework with lock-in, wrong code, layout, tap targets |
+| no open S1 or S2 bugs | **none known**. 390px checked on home, dashboard, rules panel, editor, host lobby and running, play, report, sessions, account, privacy. Found and fixed: dashboard overflow with a long title (page was 834px wide), editor question header overflowing by 4px. Not tested: real phones, Safari, slow networks |
 | parity, all must-haves done | **pass**, 13 of 13, feature score 68.7 |
 | rebrand sweep clean | **pass**, exit 0 |
 | store listing lints | **pass**, 0 errors. Draft only, there is no store app |
@@ -69,7 +69,7 @@ DMARC) is needed only once the app sends email.
 - A lawyer reads /privacy and /terms, and the school-data question (COPPA, FERPA, GDPR) is settled.
 - Support address on the site and answered.
 - Password reset by email (needs an email provider and the DNS above).
-- 390px check of the editor, host and play screens, and Playwright tests for the live game.
+- Try it on a real phone, and in Safari.
 - Error tracking, uptime check on `/` and `/api/me`, analytics you are happy to put in the privacy policy.
 - Trademark rows in `brand.md` run, domain bought, repo renamed away from `replica-wayground`.
 - Supabase on a plan with backups, and no idle pausing.
