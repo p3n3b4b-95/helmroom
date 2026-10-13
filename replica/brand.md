@@ -94,8 +94,7 @@ page description, dashboard empty states, lobby and waiting messages, answer fee
 file names or config. Fixed one leftover (`supabase/config.toml` project id).
 
 Still carrying the original's name, left for you to decide:
-- The GitHub repo is called `replica-wayground`, so the name is visible in the URL. Rename it (GitHub redirects the
-  old URL) before the repo is public or a domain points at anything. Renaming may disturb the Supabase GitHub link,
-  so re-check the integration after.
+- The GitHub repo was called `replica-wayground`. Renamed to `helmroom` on 2026-10-13. GitHub redirects the old
+  URL, and the Supabase GitHub link should be re-checked after a rename.
 - `replica/` holds the research and names the original on purpose. Keep it out of anything public and out of the
   deployed site (the sweep skips it by design).

@@ -39,7 +39,7 @@ the first three rows as known risks. I would not announce publicly until they ar
 1. **Supabase.** Table Editor: you should see 7 tables, and `game_sessions` should have a `settings` column. If not,
    run `supabase/migrations/20261013000000_init.sql` then `20261014000000_session_settings.sql` in the SQL editor.
    Then Project Settings, Database, Connection string, **Transaction pooler** (port 6543). Copy it.
-2. **Vercel.** Add New, Project, import `p3n3b4b-95/replica-wayground`.
+2. **Vercel.** Add New, Project, import `p3n3b4b-95/helmroom`.
    - Root Directory: **app**
    - Framework: Next.js (detected)
    - Environment Variables: `DATABASE_URL` = the pooler string with your password, `DB_POOL_MAX` = `1`,
@@ -71,7 +71,7 @@ DMARC) is needed only once the app sends email.
 - Password reset by email (needs an email provider and the DNS above).
 - Try it on a real phone, and in Safari.
 - Error tracking, uptime check on `/` and `/api/me`, analytics you are happy to put in the privacy policy.
-- Trademark rows in `brand.md` run, domain bought, repo renamed away from `replica-wayground`.
+- Trademark rows in `brand.md` run and the domain bought. (The repo is already renamed to `helmroom`.)
 - Supabase on a plan with backups, and no idle pausing.
 
 ## What to watch in week one
