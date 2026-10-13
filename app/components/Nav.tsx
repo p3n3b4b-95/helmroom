@@ -10,10 +10,10 @@ export default function Nav() {
   useEffect(() => {
     api<{ user: { name: string; email: string } | null }>("/api/me").then((r) => setUser(r.user)).catch(() => setUser(null));
   }, []);
-  const link = "rounded-md px-3 py-2 text-sm font-medium text-text-muted hover:bg-surface";
+  const link = "rounded-md px-2 py-2 text-sm font-medium text-text-muted hover:bg-surface sm:px-3";
   return (
     <header className="border-b border-border">
-      <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-2 px-4">
+      <div className="mx-auto flex min-h-14 max-w-[1120px] flex-wrap items-center gap-x-1 gap-y-0 px-4 py-1">
         <Link href="/" className="mr-auto text-lg font-bold">Helmroom</Link>
         <Link href="/" className={link}>Join a game</Link>
         {user ? (

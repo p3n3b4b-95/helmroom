@@ -1,0 +1,16 @@
+{
+  "avoid": ["Wayground", "Quizizz", "Quizizz Inc"],
+  "app_store": {
+    "name": "Helmroom: Quiz Your Way",
+    "subtitle": "Quizzes you control",
+    "promotional_text": "Write a quiz, set the time per question, and run it live or as homework. Students join with a code, no accounts.",
+    "description": "Helmroom is a quiz tool where the teacher sets the rules.\n\nWrite a quiz with five question types. Give each question the time it needs, from 5 seconds to 5 minutes. Run it live with you moving the class on, let each student go at their own pace, or send it home with a due date and a number of attempts.\n\nStudents join with a code and a name. They don't need an account.\n\nWhat you get:\n- Multiple choice, multiple answers, poll, fill in the blank and open-ended questions\n- A live leaderboard\n- Results per student and per question, with a CSV download\n- Edit a quiz any time. A game already running keeps the version it started with\n\nHelmroom stores a student's display name, answers and score for the game they join, and nothing else.",
+    "keywords": "classroom,teacher,homework,assessment,live,formative,review,students,trivia,polls",
+    "whats_new": "First release."
+  },
+  "google_play": {
+    "title": "Helmroom: Quiz Your Way",
+    "short_description": "Write a quiz, set the rules, run it live or as homework.",
+    "full_description": "Helmroom is a quiz tool where the teacher sets the rules.\n\nWrite a quiz with five question types. Give each question the time it needs, from 5 seconds to 5 minutes. Run it live with you moving the class on, let each student go at their own pace, or send it home with a due date and a number of attempts.\n\nStudents join with a code and a name. They don't need an account.\n\nHelmroom stores a student's display name, answers and score for the game they join, and nothing else."
+  }
+}

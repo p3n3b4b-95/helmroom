@@ -19,3 +19,8 @@
 Harder than expected: Next 16 scaffolds with cacheComponents on, which breaks a fully dynamic app. Turned it off.
 Local dev database is PGlite behind a socket (scripts/dev-db.mjs) because the Docker image pull never finished.
 Visual states were checked by hand on desktop width only. Mobile (390px) is not checked yet.
+
+## 2026-10-13, launch pass
+- S01 landing: rebuilt as the full landing page (hero, problem, how it works, controls, beta note, FAQ, CTA). Claims limited to what exists. No product screenshot yet.
+- Nav wrapped at 375px: right-hand links were cut off. Fixed, nothing offscreen now.
+- Mobile checked for the home page only. Editor, host and play screens at 390px still unchecked.
