@@ -28,12 +28,12 @@ export default function Home() {
   return (
     <div className="mx-auto grid max-w-3xl gap-10 py-8 md:grid-cols-2 md:items-center">
       <div>
-        <h1 className="text-[40px] font-bold leading-[44px]">Quizzes your class can play together</h1>
+        <h1 className="text-[40px] font-bold leading-[44px]">Run the quiz your way</h1>
         <p className="mt-4 text-text-muted">
-          Build a quiz, run it live or hand it out as homework. Students join with a code, no account needed.
+          Write a quiz, set the rules, then run it live or send it home. Students join with a code. No accounts.
         </p>
         <p className="mt-6 text-sm">
-          Teaching? <Link href="/signup" className="font-semibold text-accent underline">Create a free account</Link>
+          Teaching? <Link href="/signup" className="font-semibold text-accent underline">Make a free teacher account</Link>
         </p>
       </div>
       <Card>

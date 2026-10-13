@@ -14,7 +14,7 @@ export default function Nav() {
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-2 px-4">
-        <Link href="/" className="mr-auto text-lg font-bold">Quizroom</Link>
+        <Link href="/" className="mr-auto text-lg font-bold">Helmroom</Link>
         <Link href="/" className={link}>Join a game</Link>
         {user ? (
           <>

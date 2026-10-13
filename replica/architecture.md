@@ -1,4 +1,4 @@
-# Architecture: working name "Quizroom" (a rebuild of Wayground's core loop)
+# Architecture: working name "Helmroom" (a rebuild of Wayground's core loop)
 
 Name is a placeholder. `/replica-brand` picks the real one.
 Scope: S01-S13 from recon, minus AI generate, team/mastery modes and accommodations in the first slice.

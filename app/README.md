@@ -1,4 +1,4 @@
-# Quizroom (working name)
+# Helmroom (working name)
 
 Next.js 16 + Postgres. Teachers build quizzes and run them live or as homework; students join with a code.
 

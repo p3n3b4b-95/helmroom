@@ -97,8 +97,8 @@ export default function Dashboard() {
         <p className="text-text-muted">Loading…</p>
       ) : quizzes.length === 0 ? (
         <Card className="text-center">
-          <p className="text-lg font-semibold">{q ? "No quiz matches that search" : "No quizzes yet"}</p>
-          {!q && <p className="mt-1 text-text-muted">Make your first one, it takes a couple of minutes.</p>}
+          <p className="text-lg font-semibold">{q ? "Nothing matches that search" : "Nothing here yet"}</p>
+          {!q && <p className="mt-1 text-text-muted">Write your first quiz. It takes a few minutes.</p>}
         </Card>
       ) : (
         <ul className="grid gap-4 md:grid-cols-2">

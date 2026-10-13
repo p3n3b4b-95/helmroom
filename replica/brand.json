@@ -1,0 +1,5 @@
+{
+  "avoid": ["Wayground", "Quizizz", "Quizizz Inc"],
+  "domains": ["wayground.com", "quizizz.com"],
+  "colors": []
+}

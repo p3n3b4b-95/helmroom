@@ -84,7 +84,7 @@ export default function Host() {
           <ul className="flex flex-wrap gap-2">
             {data.players.map((p) => <li key={p.name} className="rounded-md bg-surface px-3 py-1">{p.name}</li>)}
           </ul>
-          <Button onClick={() => act("start")} disabled={data.players.length === 0}>Start game</Button>
+          <Button onClick={() => act("start")} disabled={data.players.length === 0}>Start the game</Button>
         </Card>
       )}
 
@@ -138,7 +138,7 @@ export default function Host() {
 
       {(s.status === "ended" || s.closed) && (
         <Card className="space-y-4">
-          <h2 className="text-xl font-semibold">{s.status === "ended" ? "Game over" : "Closed (deadline passed)"}</h2>
+          <h2 className="text-xl font-semibold">{s.status === "ended" ? "That's the game" : "Closed (deadline passed)"}</h2>
           <Leaderboard players={data.players} />
           <Link href={`/report/${s.id}`}><Button>See full results</Button></Link>
         </Card>

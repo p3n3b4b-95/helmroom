@@ -31,7 +31,7 @@ function Board({ rows }: { rows: { name: string; score: number }[] }) {
 
 function FeedbackCard({ f, q }: { f: Pick<Feedback, "correct" | "points" | "correctAnswer"> & { timedOut?: boolean }; q?: PQ | null }) {
   const right = f.correct;
-  const text = right === null ? "Answer recorded" : right ? "Correct!" : f.timedOut ? "Too slow" : "Not quite";
+  const text = right === null ? "Got it" : right ? "Right" : f.timedOut ? "Time ran out" : "Not this time";
   const shown = q && right === false
     ? q.type === "fill" ? String(f.correctAnswer[0]) : (f.correctAnswer as number[]).map((i) => q.options[i]).join(", ")
     : "";
@@ -126,7 +126,7 @@ export default function Play() {
   if (fb && s.pacing === "student") {
     body = <FeedbackCard f={fb} q={q} />;
   } else if (s.status === "lobby") {
-    body = <Card className="text-center"><p className="text-xl font-semibold">You are in!</p><p className="text-text-muted">Waiting for your teacher to start.</p></Card>;
+    body = <Card className="text-center"><p className="text-xl font-semibold">You're in.</p><p className="text-text-muted">Your teacher will start the game soon.</p></Card>;
   } else if (ended) {
     body = (
       <Card className="space-y-4 text-center">
@@ -140,7 +140,7 @@ export default function Play() {
     body = (
       <div className="space-y-4">
         <FeedbackCard f={data.answered} q={q} />
-        <p className="text-center text-text-muted">Waiting for the next question…</p>
+        <p className="text-center text-text-muted">Next question coming up…</p>
       </div>
     );
   } else if (q) {
