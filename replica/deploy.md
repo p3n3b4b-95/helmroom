@@ -5,6 +5,22 @@ Date: 2026-10-13. Go from user: yes, for a **closed beta**. Public launch: not y
 Nothing is live. The site builds, the database functions and the browser tests pass against a local stand-in, and
 the publish workflow is in the repo. The last steps use your Supabase and GitHub accounts, so they're yours.
 
+## Status (2026-10-13, 15:00 UTC)
+
+**Live:** https://p3n3b4b-95.github.io/helmroom/ (closed beta, unannounced).
+
+| item | state |
+| --- | --- |
+| Pages source, repo variables (URL, publishable key) | done |
+| Migrations applied on the Supabase project | verified: `game_join` answers |
+| Anonymous sign-ins | verified on |
+| Browser to Supabase on the live site (wrong code shows its error) | verified |
+| Confirm email | **still on** (`mailer_autoconfirm: false`). Teachers must click an emailed link before logging in |
+| Anonymous sign-in rate limit raised | **unverified**, only visible in the dashboard |
+| Site URL and redirect URL set | **unverified**, only visible in the dashboard |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | not set, the contact line is left out of /privacy and /terms |
+| A full game on real Supabase, on a phone | **not done yet** |
+
 ## How it is built
 
 A static site (`app/out`) published to `https://p3n3b4b-95.github.io/helmroom/` by `.github/workflows/pages.yml`.
