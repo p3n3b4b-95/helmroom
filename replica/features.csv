@@ -36,3 +36,10 @@ School and district admin dashboard,admin,could,yes,skip,separate product tier
 Certified educator programme,community,could,yes,skip,their programme
 Mobile teacher app,apps,could,yes,skip,out of scope for web core loop
 Chrome extension,apps,could,yes,skip,out of scope for web core loop
+Change your answer until time is up,play,should,no,no,"Setting, on by default. Review evidence: 3, 1 source"
+Timer off or extra time per quiz or student,play,should,no,no,"2 reviews, 1 source"
+"One settings panel: shuffle, hide leaderboard, show right answer",editor,should,no,no,"2 reviews, 1 source"
+"Rename and duplicate a quiz, drag to reorder",editor,should,no,no,"3 reviews, 2 sources"
+Resume where you left off and retry a failed submit,play,should,no,no,"4 reviews, 2 sources"
+Password reset by email,onboarding,should,no,no,"1 review, thin"
+Usable at 390px phone width,platform,should,no,no,"phone complaints, thin"
