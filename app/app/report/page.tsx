@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { usePoll } from "@/lib/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { csvCell, rpc, teacherClient, usePoll } from "@/lib/client";
 import { Button, Card, ErrorText } from "@/components/ui";
 
 type Report = {
@@ -14,11 +14,22 @@ type Report = {
   }[];
 };
 
-export default function ReportPage() {
-  const { id } = useParams<{ id: string }>();
+function downloadCsv(r: Report) {
+  const rows = [["Student", "Score", "Correct", "Answered", "Total questions"],
+    ...r.students.map((x) => [x.name, x.score, x.correct, x.answered, r.session.total])];
+  const blob = new Blob([rows.map((l) => l.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "results.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function ReportPage() {
+  const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
-  const { data, error } = usePoll<Report>(`/api/sessions/${id}/report`, 5000);
-  useEffect(() => { if (error?.status === 401) router.replace("/login"); }, [error, router]);
+  const { data, error } = usePoll<Report>(`report:${id}`, () => rpc<Report>(teacherClient(), "session_report", { p_id: id }), 5000);
+  useEffect(() => { if (error?.status === 401) router.replace("/login/"); }, [error, router]);
 
   if (error && !data) return <ErrorText>{error.message}</ErrorText>;
   if (!data) return <p className="text-text-muted">Loading…</p>;
@@ -28,8 +39,8 @@ export default function ReportPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-[28px] font-bold leading-[34px]">{s.title}: results</h1>
-        <Link href={`/host/${s.id}`}><Button variant="secondary">Back to game</Button></Link>
-        <a href={`/api/sessions/${s.id}/report.csv`}><Button>Download CSV</Button></a>
+        <Link href={`/host/?id=${s.id}`}><Button variant="secondary">Back to game</Button></Link>
+        <Button onClick={() => downloadCsv(data)}>Download CSV</Button>
       </div>
 
       <Card className="overflow-x-auto">
@@ -79,4 +90,8 @@ export default function ReportPage() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense fallback={<p className="text-text-muted">Loading…</p>}><ReportPage /></Suspense>;
 }

@@ -16,7 +16,7 @@ export async function signUp(page: Page, tag = "t") {
 
 // One multiple-choice question: "2+2?" with 3, 4, 5 and 4 is right.
 export async function makeQuiz(page: Page, title: string) {
-  await page.goto("/quizzes/new");
+  await page.goto("/quizzes/edit/");
   await page.getByLabel("Title", { exact: true }).fill(title);
   await page.getByLabel("Question", { exact: true }).fill("2+2?");
   await page.getByLabel("Answer 1", { exact: true }).fill("3");

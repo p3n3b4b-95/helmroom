@@ -1,39 +1,68 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export async function api<T = unknown>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
-  const res = await fetch(path, {
-    method: init?.method ?? (init?.body !== undefined ? "POST" : "GET"),
-    headers: init?.body !== undefined ? { "content-type": "application/json" } : undefined,
-    body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+// Public by design: the anon key only lets someone call the functions, and the functions check who is asking.
+const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export const configured = Boolean(URL_ && KEY);
+
+// Teachers and students keep separate sessions, so a teacher trying the student view doesn't sign themselves out.
+function make(storageKey: string, detectSessionInUrl: boolean) {
+  return createClient(URL_ ?? "http://not-configured.invalid", KEY ?? "not-configured", {
+    auth: { storageKey, persistSession: true, autoRefreshToken: true, detectSessionInUrl },
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error ?? "Request failed"), { status: res.status });
+}
+let teacherC: SupabaseClient | undefined;
+let studentC: SupabaseClient | undefined;
+export const teacherClient = () => (teacherC ??= make("helmroom-teacher", true));
+export const studentClient = () => (studentC ??= make("helmroom-student", false));
+
+export type ApiError = Error & { status?: number };
+
+export async function rpc<T = unknown>(c: SupabaseClient, fn: string, args: object = {}): Promise<T> {
+  const { data, error } = await c.rpc(fn, args);
+  if (error) {
+    const needsLogin = /log in|permission denied|JWT|join the game first/i.test(error.message) || error.code === "42501";
+    throw Object.assign(new Error(error.message), { status: needsLogin ? 401 : 400 });
+  }
   return data as T;
 }
 
-// Poll an endpoint every `ms`. Keeps the last good value if one poll fails.
-export function usePoll<T>(path: string | null, ms = 1500) {
+export async function ensureStudent() {
+  const c = studentClient();
+  const { data } = await c.auth.getSession();
+  if (!data.session) {
+    const { error } = await c.auth.signInAnonymously();
+    if (error) throw new Error(error.message);
+  }
+  return c;
+}
+
+// Call `fn` every `ms`. Keeps the last good value if one call fails.
+export function usePoll<T>(key: string | null, fn: () => Promise<T>, ms = 1500) {
   const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<(Error & { status?: number }) | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
   const alive = useRef(true);
+  const latest = useRef(fn);
+  latest.current = fn;
   useEffect(() => {
     alive.current = true;
-    if (!path) return;
+    if (!key) return;
     let timer: ReturnType<typeof setTimeout>;
     const tick = async () => {
       try {
-        const d = await api<T>(path);
+        const d = await latest.current();
         if (alive.current) { setData(d); setError(null); }
       } catch (e) {
-        if (alive.current) setError(e as Error);
+        if (alive.current) setError(e as ApiError);
       }
       if (alive.current) timer = setTimeout(tick, ms);
     };
     tick();
     return () => { alive.current = false; clearTimeout(timer); };
-  }, [path, ms]);
-  return { data, error, refresh: async () => { if (path) try { setData(await api<T>(path)); } catch {} } };
+  }, [key, ms]);
+  return { data, error, refresh: async () => { if (key) try { setData(await latest.current()); } catch {} } };
 }
 
 // seconds left, ticking locally between polls
@@ -47,4 +76,11 @@ export function useCountdown(secondsLeft: number | null | undefined, key: unknow
   }, []);
   if (base.current.s === null) return null;
   return Math.max(0, Math.ceil(base.current.s - (now - base.current.at) / 1000));
+}
+
+// one cell of a CSV; student names are untrusted, so nothing may start like a spreadsheet formula
+export function csvCell(v: unknown) {
+  let s = String(v ?? "");
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }

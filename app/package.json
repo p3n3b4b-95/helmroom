@@ -6,12 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:api": "node tests/e2e.mjs",
-    "test:browser": "playwright test"
+    "test:api": "node tests/rpc.mjs",
+    "test:browser": "playwright test",
+    "db": "node scripts/local-supabase.mjs",
+    "serve": "node scripts/serve-static.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
     "next": "16.4.0",
-    "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

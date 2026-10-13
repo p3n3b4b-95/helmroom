@@ -2,13 +2,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/client";
+import { configured, teacherClient } from "@/lib/client";
 
 export default function Nav() {
-  const [user, setUser] = useState<{ name: string; email: string } | null | undefined>(undefined);
+  const [user, setUser] = useState<{ email: string } | null | undefined>(undefined);
   const router = useRouter();
   useEffect(() => {
-    api<{ user: { name: string; email: string } | null }>("/api/me").then((r) => setUser(r.user)).catch(() => setUser(null));
+    if (!configured) { setUser(null); return; }
+    const c = teacherClient();
+    const apply = (u: { email?: string; is_anonymous?: boolean } | undefined | null) =>
+      setUser(u && !u.is_anonymous ? { email: u.email ?? "" } : null);
+    c.auth.getSession().then(({ data }) => apply(data.session?.user));
+    const { data } = c.auth.onAuthStateChange((_e, session) => apply(session?.user));
+    return () => data.subscription.unsubscribe();
   }, []);
   const link = "rounded-md px-2 py-2 text-sm font-medium text-text-muted hover:bg-surface sm:px-3";
   return (
@@ -21,7 +27,7 @@ export default function Nav() {
             <Link href="/dashboard" className={link}>My quizzes</Link>
             <Link href="/assignments" className={link}>Sessions</Link>
             <Link href="/account" className={link}>Account</Link>
-            <button className={link} onClick={async () => { await api("/api/auth/logout", { body: {} }); setUser(null); router.push("/"); }}>
+            <button className={link} onClick={async () => { await teacherClient().auth.signOut(); setUser(null); router.push("/"); }}>
               Log out
             </button>
           </>

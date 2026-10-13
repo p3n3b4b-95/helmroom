@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Link from "next/link";
 import Nav from "@/components/Nav";
 
 export const metadata: Metadata = {
@@ -15,8 +16,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="mx-auto w-full max-w-[1120px] flex-1 px-4 py-8">{children}</main>
         <footer className="border-t border-border">
           <nav className="mx-auto flex max-w-[1120px] gap-6 px-4 py-2 text-sm text-text-muted" aria-label="Footer">
-            <a href="/privacy" className="inline-block py-2 hover:underline">Privacy</a>
-            <a href="/terms" className="inline-block py-2 hover:underline">Terms</a>
+            <Link href="/privacy/" className="inline-block py-2 hover:underline">Privacy</Link>
+            <Link href="/terms/" className="inline-block py-2 hover:underline">Terms</Link>
           </nav>
         </footer>
       </body>

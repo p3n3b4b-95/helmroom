@@ -1,3 +1,4 @@
+import Link from "next/link";
 const email = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 
 export const metadata = { title: "Privacy · Helmroom" };
@@ -19,7 +20,7 @@ export default function Privacy() {
       <p>Helmroom runs on a hosting provider and a database provider, and they process the data above on our behalf. We don&apos;t sell data and we don&apos;t share it for advertising.</p>
 
       <h2 className="text-xl font-semibold">Deleting data</h2>
-      <p>Teachers can delete their account from the <a className="text-accent underline" href="/account">account page</a>. That removes the account, every quiz, every game and every student result tied to it. Deleting a single quiz does not remove the results of games already played from it. Game results are otherwise kept until the account is deleted.</p>
+      <p>Teachers can delete their account from the <Link className="text-accent underline" href="/account/">account page</Link>. That removes the account, every quiz, every game and every student result tied to it. Deleting a single quiz does not remove the results of games already played from it. Game results are otherwise kept until the account is deleted.</p>
 
       <h2 className="text-xl font-semibold">Schools and students</h2>
       <p>Helmroom is made for teachers to use with their classes. Teachers are responsible for using it in line with their school&apos;s rules and the law where they teach.</p>

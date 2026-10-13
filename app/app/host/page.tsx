@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { api, useCountdown, usePoll } from "@/lib/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { rpc, teacherClient, useCountdown, usePoll } from "@/lib/client";
 import { ANSWER_COLORS, Button, Card, ErrorText } from "@/components/ui";
 
 type Player = { name: string; score: number; finished: boolean; answered: number; answered_current: boolean };
@@ -32,20 +32,20 @@ function Leaderboard({ players }: { players: Player[] }) {
   );
 }
 
-export default function Host() {
-  const { id } = useParams<{ id: string }>();
+function Host() {
+  const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
-  const { data, error, refresh } = usePoll<State>(`/api/sessions/${id}`, 1500);
+  const { data, error, refresh } = usePoll<State>(`host:${id}`, () => rpc<State>(teacherClient(), "session_host_state", { p_id: id }), 1500);
   const [err, setErr] = useState("");
   const s = data?.session;
   const left = useCountdown(data?.secondsLeft, s?.current_index);
 
-  useEffect(() => { if (error?.status === 401) router.replace("/login"); }, [error, router]);
+  useEffect(() => { if (error?.status === 401) router.replace("/login/"); }, [error, router]);
 
   async function act(action: "start" | "next" | "end") {
     setErr("");
     try {
-      await api(`/api/sessions/${id}/${action}`, { body: action === "next" ? { index: s?.current_index } : {} });
+      await rpc(teacherClient(), "session_action", { p_id: id, p_action: action, p_index: action === "next" ? s?.current_index : null });
       await refresh();
     } catch (e) {
       setErr((e as Error).message);
@@ -55,7 +55,7 @@ export default function Host() {
   if (error && !data) return <ErrorText>{error.message}</ErrorText>;
   if (!data || !s) return <p className="text-text-muted">Loading…</p>;
 
-  const joinUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const joinUrl = typeof window !== "undefined" ? window.location.host + (process.env.NEXT_PUBLIC_BASE_PATH ?? "") : "";
   const live = s.status === "running" && s.pacing === "teacher";
   const last = s.current_index === s.total - 1;
   const answered = data.players.filter((p) => p.answered_current).length;
@@ -65,13 +65,13 @@ export default function Host() {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-[28px] font-bold leading-[34px]">{s.title}</h1>
         {s.status !== "ended" && <Button variant="danger" onClick={() => confirm("End for everyone?") && act("end")}>End</Button>}
-        <Link href={`/report/${s.id}`}><Button variant="secondary">Results</Button></Link>
+        <Link href={`/report/?id=${s.id}`}><Button variant="secondary">Results</Button></Link>
       </div>
       <ErrorText>{err}</ErrorText>
 
       {s.status !== "ended" && !s.closed && (
         <Card className="text-center">
-          <p className="text-text-muted">Go to <strong>{joinUrl.replace(/^https?:\/\//, "")}</strong> and enter</p>
+          <p className="text-text-muted">Go to <strong>{joinUrl}</strong> and enter</p>
           <p className="text-[40px] font-bold leading-[44px] tracking-widest" aria-label={`Game code ${s.code.split("").join(" ")}`}>{s.code}</p>
           {s.kind === "homework" && s.deadline && (
             <p className="text-sm text-text-muted">Due {new Date(s.deadline).toLocaleString()}</p>
@@ -154,9 +154,13 @@ export default function Host() {
         <Card className="space-y-4">
           <h2 className="text-xl font-semibold">{s.status === "ended" ? "That's the game" : "Closed (deadline passed)"}</h2>
           <Leaderboard players={data.players} />
-          <Link href={`/report/${s.id}`}><Button>See full results</Button></Link>
+          <Link href={`/report/?id=${s.id}`}><Button>See full results</Button></Link>
         </Card>
       )}
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense fallback={<p className="text-text-muted">Loading…</p>}><Host /></Suspense>;
 }

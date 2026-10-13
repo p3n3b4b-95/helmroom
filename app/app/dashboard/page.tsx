@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/client";
+import { rpc, teacherClient } from "@/lib/client";
 import { Button, Card, ErrorText, Field, Input } from "@/components/ui";
 
 type Quiz = { id: string; title: string; subject: string; question_count: number; updated_at: string };
@@ -36,10 +36,11 @@ function Launch({ quiz, onClose }: { quiz: Quiz; onClose: () => void }) {
   async function go() {
     setError("");
     try {
-      const r = await api<{ id: string }>(`/api/quizzes/${quiz.id}/sessions`, {
-        body: { kind, pacing, attempts, settings: rules, deadline: kind === "homework" ? new Date(deadline).toISOString() : undefined },
+      const r = await rpc<{ id: string }>(teacherClient(), "session_create", {
+        p_quiz: quiz.id,
+        p_opts: { kind, pacing, attempts, settings: rules, deadline: kind === "homework" ? new Date(deadline).toISOString() : undefined },
       });
-      router.push(`/host/${r.id}`);
+      router.push(`/host/?id=${r.id}`);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -123,7 +124,7 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     try {
-      setQuizzes((await api<{ quizzes: Quiz[] }>(`/api/quizzes?q=${encodeURIComponent(q)}`)).quizzes);
+      setQuizzes(await rpc<Quiz[]>(teacherClient(), "quiz_list", { p_q: q }));
     } catch (e) {
       if ((e as { status?: number }).status === 401) router.replace("/login");
       else setError((e as Error).message);
@@ -135,7 +136,7 @@ export default function Dashboard() {
     const title = prompt("Quiz title", z.title)?.trim();
     if (!title || title === z.title) return;
     try {
-      await api(`/api/quizzes/${z.id}`, { method: "PATCH", body: { title } });
+      await rpc(teacherClient(), "quiz_rename", { p_id: z.id, p_title: title });
       load();
     } catch (e) {
       setError((e as Error).message);
@@ -144,7 +145,7 @@ export default function Dashboard() {
 
   async function duplicate(z: Quiz) {
     try {
-      await api(`/api/quizzes/${z.id}/duplicate`, { body: {} });
+      await rpc(teacherClient(), "quiz_duplicate", { p_id: z.id });
       load();
     } catch (e) {
       setError((e as Error).message);
@@ -153,7 +154,7 @@ export default function Dashboard() {
 
   async function remove(z: Quiz) {
     if (!confirm(`Delete "${z.title}"? This cannot be undone.`)) return;
-    await api(`/api/quizzes/${z.id}`, { method: "DELETE" });
+    await rpc(teacherClient(), "quiz_delete", { p_id: z.id });
     load();
   }
 
@@ -162,7 +163,7 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-[28px] font-bold leading-[34px]">My quizzes</h1>
         <Input className="max-w-56" placeholder="Search" aria-label="Search quizzes" value={q} onChange={(e) => setQ(e.target.value)} />
-        <Link href="/quizzes/new"><Button>New quiz</Button></Link>
+        <Link href="/quizzes/edit/"><Button>New quiz</Button></Link>
       </div>
       <ErrorText>{error}</ErrorText>
       {quizzes === null ? (
@@ -185,7 +186,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <Button onClick={() => setLaunching(launching === z.id ? null : z.id)}>Start</Button>
-                  <Link href={`/quizzes/${z.id}`}><Button variant="secondary">Edit</Button></Link>
+                  <Link href={`/quizzes/edit/?id=${z.id}`}><Button variant="secondary">Edit</Button></Link>
                 </div>
                 <div className="mt-2 flex gap-1">
                   <Button variant="ghost" onClick={() => rename(z)} aria-label={`Rename ${z.title}`}>Rename</Button>

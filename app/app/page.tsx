@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { api } from "@/lib/client";
+import { configured, ensureStudent, rpc } from "@/lib/client";
 import { Button, Card, ErrorText, Field, Input } from "@/components/ui";
 
 const CONTROLS = [
@@ -42,8 +42,11 @@ export default function Home() {
     setBusy(true);
     setError("");
     try {
-      const r = await api<{ sessionId: string }>("/api/join", { body: { code, name } });
-      router.push(`/play/${r.sessionId}`);
+      if (!configured) throw new Error("This site isn't connected to its database yet.");
+      const c = await ensureStudent();
+      const r = await rpc<{ sessionId?: string; error?: string }>(c, "game_join", { p_code: code, p_name: name });
+      if (r.error || !r.sessionId) throw new Error(r.error ?? "Could not join");
+      router.push(`/play/?id=${r.sessionId}`);
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);

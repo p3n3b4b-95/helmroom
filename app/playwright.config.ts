@@ -1,7 +1,8 @@
 import { defineConfig } from "@playwright/test";
 
 const baseURL = process.env.BASE_URL ?? "http://localhost:3100";
-// Tests drive a running, built app: `npm run build && npm run start -- -p 3100`, with a database behind it.
+// Tests drive the built static site (npm run build, then npm run serve) and a Supabase to talk to
+// (npm run db for the local stand-in, with NEXT_PUBLIC_SUPABASE_URL pointing at it when you build).
 // If Playwright's own browser can't be downloaded, point PW_CHROME at any Chrome or Chromium binary.
 const executablePath = process.env.PW_CHROME;
 

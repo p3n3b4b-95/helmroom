@@ -1,19 +1,30 @@
 # Helmroom (working name)
 
-Next.js 16 + Postgres. Teachers build quizzes and run them live or as homework; students join with a code.
+A quiz tool where the teacher sets the rules. A static Next.js site that talks straight to Supabase: no server of
+its own. It publishes to GitHub Pages.
+
+## How it fits together
+
+- `app/` the site. `next build` writes plain files to `app/out`.
+- `supabase/migrations/` the database: tables (locked, no direct access) and 15 functions the site calls.
+  Teachers sign in with Supabase Auth, students with anonymous sign-in. Scoring and "never show the right answer
+  early" live in the functions, not in the browser.
+- `.github/workflows/pages.yml` builds and publishes the site on every push to `main`.
+
+## Run it on your machine
 
 ```bash
 npm install
-cp .env.example .env.local        # set DATABASE_URL (Supabase pooler URL, or the local one below)
-node scripts/dev-db.mjs           # local dev DB on :5433 (PGlite), applies ../replica/schema.sql
-npm run dev -- -p 3100
-npm run build && npm run start -- -p 3100
-BASE=http://localhost:3100 npm run test:api       # API checks (wait a minute between runs: wrong codes are throttled)
-npx playwright install chromium && npm run test:browser   # phone (390px) and desktop projects
+npm run db                 # terminal 1: local stand-in for Supabase on :54321 (PGlite, applies the migrations)
+npm run build              # reads .env.local (copy .env.example; point it at http://localhost:54321, key "local")
+npm run serve              # terminal 2: the built site on :3100
+npm run test:api           # the database functions, over HTTP
+npm run test:browser       # phone and desktop (npx playwright install chromium first)
 ```
 
-No Playwright browser? Start any Chrome with `--remote-debugging-port=9333 --headless=new` and run
+No Playwright browser? Start any Chrome with `--headless=new --remote-debugging-port=9333` and run
 `PW_CDP=http://localhost:9333 npm run test:browser`.
 
-Production: create a Supabase project, run `replica/schema.sql` in its SQL editor, set `DATABASE_URL`
-(pooler, transaction mode, port 6543) in Vercel. Never expose the connection string to the browser.
+## Put it on github.io
+
+See `replica/deploy.md`.

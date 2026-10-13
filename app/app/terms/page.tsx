@@ -1,3 +1,4 @@
+import Link from "next/link";
 const email = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 
 export const metadata = { title: "Terms · Helmroom" };
@@ -14,7 +15,7 @@ export default function Terms() {
       <h2 className="text-xl font-semibold">The beta</h2>
       <p>The service is provided as it is. It can change, go down or lose data, so keep a copy of anything you can&apos;t afford to lose. We may change or end the beta, and we&apos;ll give notice where we can.</p>
       <h2 className="text-xl font-semibold">Accounts</h2>
-      <p>Keep your password to yourself. You can delete your account at any time from the <a className="text-accent underline" href="/account">account page</a>. We may suspend accounts that misuse the service.</p>
+      <p>Keep your password to yourself. You can delete your account at any time from the <Link className="text-accent underline" href="/account/">account page</Link>. We may suspend accounts that misuse the service.</p>
       {email && (<><h2 className="text-xl font-semibold">Contact</h2><p><a className="text-accent underline" href={`mailto:${email}`}>{email}</a></p></>)}
     </article>
   );

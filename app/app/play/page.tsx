@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { api, useCountdown, usePoll } from "@/lib/client";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { ensureStudent, rpc, studentClient, useCountdown, usePoll } from "@/lib/client";
 import { ANSWER_COLORS, Button, Card, ErrorText, Input } from "@/components/ui";
 
 type PQ = { type: "mcq" | "multi" | "poll" | "fill" | "open"; prompt: string; image_url: string | null; options: string[]; points: number };
@@ -105,9 +105,9 @@ function QuestionView({ q, index, total, left, timerOff, onSubmit, disabled, sel
   );
 }
 
-export default function Play() {
-  const { id } = useParams<{ id: string }>();
-  const { data, error, refresh } = usePoll<State>(`/api/play/${id}`, 1500);
+function Play() {
+  const id = useSearchParams().get("id") ?? "";
+  const { data, error, refresh } = usePoll<State>(`play:${id}`, async () => rpc<State>(await ensureStudent(), "game_state", { p_session: id }), 1500);
   const [fb, setFb] = useState<Feedback | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -126,7 +126,7 @@ export default function Play() {
     setBusy(true);
     setErr("");
     try {
-      const r = await api<Feedback>(`/api/play/${id}/answer`, { body: { q_index: data!.index, answer } });
+      const r = await rpc<Feedback>(studentClient(), "game_answer", { p_session: id, p_index: data!.index, p_answer: answer });
       if (studentPaced) {
         setFb(r);
         setTimeout(() => { setFb(null); setBusy(false); refresh(); }, 1400);
@@ -187,4 +187,8 @@ export default function Play() {
       <div className="mt-4"><ErrorText>{err}</ErrorText></div>
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense fallback={<p className="text-text-muted">Loading…</p>}><Play /></Suspense>;
 }

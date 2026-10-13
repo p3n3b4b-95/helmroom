@@ -6,7 +6,7 @@ const LONG = `A quiz with a very long title so we can see how it wraps on a smal
 
 test("long titles and long answers do not push the page sideways", async ({ page }) => {
   await signUp(page);
-  await page.goto("/quizzes/new");
+  await page.goto("/quizzes/edit/");
   await page.getByLabel("Title", { exact: true }).fill(LONG);
   await page.getByLabel("Question", { exact: true }).fill("What is the capital of France, the country in western Europe known for the Eiffel Tower?");
   await page.getByLabel("Answer 1", { exact: true }).fill("Paris, which is a rather long answer label that needs to wrap onto several lines");
@@ -25,7 +25,7 @@ test("long titles and long answers do not push the page sideways", async ({ page
   await expect(page.getByText("0 joined")).toBeVisible();
   await noSideways(page); // host lobby
 
-  for (const path of ["/assignments", "/account", "/privacy", "/terms", "/login", "/signup", "/"]) {
+  for (const path of ["/assignments/", "/account/", "/privacy/", "/terms/", "/login/", "/signup/", "/"]) {
     await page.goto(path);
     await noSideways(page);
   }

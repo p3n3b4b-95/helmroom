@@ -3,6 +3,13 @@
 Name is a placeholder. `/replica-brand` picks the real one.
 Scope: S01-S13 from recon, minus AI generate, team/mastery modes and accommodations in the first slice.
 
+> **Updated 2026-10-13: no server.** The Next.js server and its API routes were replaced. The site is now a static
+> export on GitHub Pages and talks straight to Supabase. Teachers use Supabase Auth, students use anonymous sign-in,
+> and every rule (scoring, hiding right answers, shuffles, change-your-answer) is a Postgres function in
+> `supabase/migrations/20261015000000_supabase_native.sql`. Tables are locked: row level security on, no policies, no
+> grants, so the only way in is the 15 functions. The sections below describe the first version (server plus
+> Postgres) and are kept for the reasoning, not as the current design.
+
 ## Stack
 
 | layer | choice | why |

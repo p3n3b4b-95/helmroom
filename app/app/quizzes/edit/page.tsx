@@ -1,7 +1,7 @@
 "use client";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { rpc, teacherClient } from "@/lib/client";
 import { Button, Card, ErrorText, Field, Input } from "@/components/ui";
 
 type QType = "mcq" | "multi" | "poll" | "fill" | "open";
@@ -21,28 +21,28 @@ const blank = (type: QType): Q => ({
   correct: [], points: 1000, time_limit_s: 20,
 });
 
-export default function Editor() {
-  const { id } = useParams<{ id: string }>();
+function Editor() {
+  const id = useSearchParams().get("id");
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("");
   const [qs, setQs] = useState<Q[]>([blank("mcq")]);
-  const [loading, setLoading] = useState(id !== "new");
+  const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
 
   useEffect(() => {
-    if (id === "new") return;
-    api<{ title: string; subject: string; questions: (Q & { image_url: string | null })[] }>(`/api/quizzes/${id}`)
+    if (!id) return;
+    rpc<{ title: string; subject: string; questions: (Q & { image_url: string | null })[] }>(teacherClient(), "quiz_get", { p_id: id })
       .then((z) => {
         setTitle(z.title); setSubject(z.subject);
         setQs(z.questions.map((q) => ({ ...q, image_url: q.image_url ?? "" })));
         setLoading(false);
       })
       .catch((e) => {
-        if (e.status === 401) router.replace("/login");
+        if (e.status === 401) router.replace("/login/");
         else { setError(e.message); setLoading(false); }
       });
   }, [id, router]);
@@ -68,10 +68,9 @@ export default function Editor() {
     setSaving(true);
     setError("");
     try {
-      const body = { title, subject, questions: qs.map((q) => ({ ...q, image_url: q.image_url.trim() || null })) };
-      if (id === "new") await api("/api/quizzes", { body });
-      else await api(`/api/quizzes/${id}`, { method: "PUT", body });
-      router.push("/dashboard");
+      const quiz = { title, subject, questions: qs.map((q) => ({ ...q, image_url: q.image_url.trim() || null })) };
+      await rpc(teacherClient(), "quiz_save", { p_id: id, p_quiz: quiz });
+      router.push("/dashboard/");
     } catch (e) {
       setError((e as Error).message);
       setSaving(false);
@@ -82,7 +81,7 @@ export default function Editor() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-[28px] font-bold leading-[34px]">{id === "new" ? "New quiz" : "Edit quiz"}</h1>
+      <h1 className="text-[28px] font-bold leading-[34px]">{id ? "Edit quiz" : "New quiz"}</h1>
       <Card className="grid gap-4 sm:grid-cols-2">
         <Field label="Title"><Input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} /></Field>
         <Field label="Subject (optional)"><Input value={subject} maxLength={100} onChange={(e) => setSubject(e.target.value)} /></Field>
@@ -165,8 +164,12 @@ export default function Editor() {
       <ErrorText>{error}</ErrorText>
       <div className="flex gap-2">
         <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save quiz"}</Button>
-        <Button variant="ghost" onClick={() => router.push("/dashboard")}>Cancel</Button>
+        <Button variant="ghost" onClick={() => router.push("/dashboard/")}>Cancel</Button>
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  return <Suspense fallback={<p className="text-text-muted">Loading…</p>}><Editor /></Suspense>;
 }
