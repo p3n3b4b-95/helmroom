@@ -94,3 +94,13 @@ create table responses (
   -- double submit cannot score twice
   unique (participant_id, q_index, attempt)
 );
+
+-- Supabase exposes the public schema over its REST API. Deny it all: RLS on, no policies.
+-- The app connects as the database owner through DATABASE_URL, which bypasses RLS.
+alter table users enable row level security;
+alter table auth_sessions enable row level security;
+alter table quizzes enable row level security;
+alter table questions enable row level security;
+alter table game_sessions enable row level security;
+alter table participants enable row level security;
+alter table responses enable row level security;

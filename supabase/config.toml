@@ -1,0 +1,6 @@
+# Minimal config so the Supabase GitHub integration finds this directory.
+# Migrations in ./migrations run in filename order on the tracked branch.
+project_id = "replica-wayground"
+
+[db]
+major_version = 15
